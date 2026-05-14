@@ -1,51 +1,33 @@
-version: "3.9"
-
 services:
   mongo:
-    image: mongo:7.0
-    container_name: lambare-mongo
+    image: mongo:7
     restart: unless-stopped
-    ports:
-      - "${MONGO_BIND:-27017}:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-changeme}
-      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-lambare}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD is required}
     volumes:
       - mongo_data:/data/db
-      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
     networks:
-      - lambare-net
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - backend
 
   api:
-    image: ${API_IMAGE:-ghcr.io/lambare/go-mongo-api:latest}
-    pull_policy: always
-    container_name: lambare-api
+    image: ${API_IMAGE:-ghcr.io/OWNER/backend-mongo-api:latest}
     restart: unless-stopped
-    depends_on:
-      mongo:
-        condition: service_healthy
     ports:
-      - "${API_BIND:-8080}:8080"
+      - "${API_PORT:-8080}:8080"
     environment:
-      API_PORT: "8080"
-      GIN_MODE: ${GIN_MODE:-release}
-      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-changeme}@mongo:27017/${MONGO_DB_NAME:-lambare}?authSource=admin
-      MONGO_DB_NAME: ${MONGO_DB_NAME:-lambare}
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-60}
-      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-7}
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD}@mongo:27017/${MONGODB_DB:-mydb}?authSource=admin
+      MONGODB_DB: ${MONGODB_DB:-mydb}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      PORT: "8080"
+    depends_on:
+      - mongo
     networks:
-      - lambare-net
+      - backend
 
 volumes:
   mongo_data:
 
 networks:
-  lambare-net:
+  backend:
     driver: bridge

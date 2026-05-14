@@ -1,0 +1,19 @@
+# Binaries
+api
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+
+# Swagger — generated at build time by swag init
+docs/
+
+# Env
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
