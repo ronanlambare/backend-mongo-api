@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Lambare API
   description: |
-    REST API Go + MongoDB exposée via Cloudflare sur **lambare.fr**.
+    REST API Go + MongoDB.
 
     ## Authentication
     Les routes `/api/v1/**` nécessitent un **Bearer token** JWT.
@@ -16,7 +16,7 @@ info:
 
 servers:
   - url: https://api.lambare.fr
-    description: Production (Cloudflare Tunnel)
+    description: Production
   - url: http://localhost:8080
     description: Local development
 
