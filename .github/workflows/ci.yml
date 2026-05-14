@@ -33,7 +33,6 @@ jobs:
           go install github.com/swaggo/swag/cmd/swag@v1.16.3
           swag init -g main.go
           go mod tidy
-          npx --yes swagger2openapi docs/swagger.json -o docs/openapi.yaml
 
       - name: Commit generated files
         run: |
@@ -45,7 +44,7 @@ jobs:
       - name: Prepare documentation site
         run: |
           mkdir dist
-          cp docs/openapi.yaml dist/
+          cp docs/swagger.yaml dist/
           cp .github/pages/index.html dist/
 
       - name: Upload Pages artifact
