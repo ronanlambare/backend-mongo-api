@@ -18,10 +18,18 @@ type UserRepository struct {
 
 func NewUserRepository(db *mongo.Database) *UserRepository {
 	col := db.Collection("users")
-	// Ensure unique index on username
+	// Unique index on username (sparse: OIDC users may not have one)
 	col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
 		Keys:    bson.M{"username": 1},
-		Options: options.Index().SetUnique(true),
+		Options: options.Index().SetUnique(true).SetSparse(true),
+	})
+	// Unique compound index on OIDC identities (provider + sub)
+	col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "identities.provider", Value: 1},
+			{Key: "identities.sub", Value: 1},
+		},
+		Options: options.Index().SetUnique(true).SetSparse(true),
 	})
 	return &UserRepository{col: col}
 }
@@ -56,4 +64,40 @@ func (r *UserRepository) Create(ctx context.Context, username, password string) 
 
 func (r *UserRepository) CheckPassword(hash, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
+}
+
+// FindOrCreateByOIDC finds an existing user by (provider, sub) or creates one.
+// email may be empty (Apple does not return it on subsequent logins).
+func (r *UserRepository) FindOrCreateByOIDC(ctx context.Context, provider, sub, email string) (*model.User, error) {
+	filter := bson.M{
+		"identities": bson.M{
+			"$elemMatch": bson.M{"provider": provider, "sub": sub},
+		},
+	}
+
+	var user model.User
+	if err := r.col.FindOne(ctx, filter).Decode(&user); err == nil {
+		return &user, nil
+	} else if err != mongo.ErrNoDocuments {
+		return nil, err
+	}
+
+	newUser := model.User{
+		ID:    primitive.NewObjectID(),
+		Email: email,
+		Identities: []model.OIDCIdentity{
+			{Provider: provider, Sub: sub},
+		},
+	}
+	if _, err := r.col.InsertOne(ctx, newUser); err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			// Race condition: user was created by a concurrent request
+			if fetchErr := r.col.FindOne(ctx, filter).Decode(&user); fetchErr != nil {
+				return nil, fetchErr
+			}
+			return &user, nil
+		}
+		return nil, err
+	}
+	return &newUser, nil
 }

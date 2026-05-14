@@ -52,8 +52,21 @@ func main() {
 	itemRepo := repository.NewItemRepository(db)
 	userRepo := repository.NewUserRepository(db)
 
+	// OIDC providers: add env vars for each provider you support.
+	// The key is the issuer URL, the value is your OAuth2 client ID for that provider.
+	oidcProviders := map[string]string{}
+	if id := getEnv("OIDC_GOOGLE_CLIENT_ID", ""); id != "" {
+		oidcProviders["https://accounts.google.com"] = id
+	}
+	if id := getEnv("OIDC_APPLE_CLIENT_ID", ""); id != "" {
+		oidcProviders["https://appleid.apple.com"] = id
+	}
+
 	itemHandler := handler.NewItemHandler(itemRepo)
-	authHandler := handler.NewAuthHandler(userRepo, jwtSecret)
+	authHandler, err := handler.NewAuthHandler(userRepo, jwtSecret, oidcProviders)
+	if err != nil {
+		log.Fatalf("failed to initialize auth handler: %v", err)
+	}
 
 	router := gin.Default()
 
@@ -68,6 +81,7 @@ func main() {
 		{
 			auth.POST("/register", authHandler.Register)
 			auth.POST("/login", authHandler.Login)
+			auth.POST("/oidc", authHandler.OIDCLogin)
 		}
 
 		items := api.Group("/items")
