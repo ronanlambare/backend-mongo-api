@@ -73,10 +73,10 @@ func main() {
 	// Swagger UI — available at /swagger/index.html
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	router.GET("/health", func(c *gin.Context) { c.Status(200) })
-
 	api := router.Group("/api")
 	{
+		api.GET("/health", func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) })
+
 		auth := api.Group("/auth")
 		{
 			auth.POST("/register", authHandler.Register)
