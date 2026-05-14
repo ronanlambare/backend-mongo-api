@@ -2,6 +2,8 @@
 
 REST API in Go backed by MongoDB, with JWT authentication and auto-generated Swagger documentation.
 
+**API Docs:** https://ronanlambare.github.io/backend-mongo-api/
+
 ## Stack
 
 - **Go 1.22** — [Gin](https://github.com/gin-gonic/gin) HTTP framework
@@ -55,7 +57,7 @@ REST API in Go backed by MongoDB, with JWT authentication and auto-generated Swa
 The `docs/` package is **generated automatically** by the CI on every push to `main` via `swag init`, converted to **OpenAPI 3.0** with `swagger2openapi`, then committed back to the repository. Do not edit files under `docs/` by hand.
 
 The interactive documentation is published to **GitHub Pages** on every build:
-👉 `https://ronanlambare.github.io/backend-mongo-api/`
+https://ronanlambare.github.io/backend-mongo-api/
 
 > **One-time setup:** go to *Settings → Pages → Source* and select **GitHub Actions**.
 
