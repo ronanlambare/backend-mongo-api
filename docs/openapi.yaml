@@ -1,0 +1,307 @@
+openapi: 3.0.0
+info:
+  description: REST API backed by MongoDB with JWT authentication.
+  title: Backend Mongo API
+  contact: {}
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login and get JWT token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/model.LoginRequest"
+        description: Credentials
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.LoginResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/model.RegisterRequest"
+        description: Credentials
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.LoginResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "409":
+          description: Username already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+  /items:
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - items
+      summary: List all items
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/model.Item"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+    post:
+      security:
+        - BearerAuth: []
+      tags:
+        - items
+      summary: Create a new item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/model.CreateItemRequest"
+        description: Item payload
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.Item"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+  "/items/{id}":
+    get:
+      security:
+        - BearerAuth: []
+      tags:
+        - items
+      summary: Get an item by ID
+      parameters:
+        - description: Item ID (MongoDB ObjectID)
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.Item"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+    put:
+      security:
+        - BearerAuth: []
+      tags:
+        - items
+      summary: Update an item
+      parameters:
+        - description: Item ID (MongoDB ObjectID)
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/model.UpdateItemRequest"
+        description: Item payload
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.Item"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+    delete:
+      security:
+        - BearerAuth: []
+      tags:
+        - items
+      summary: Delete an item
+      parameters:
+        - description: Item ID (MongoDB ObjectID)
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model.ErrorResponse"
+servers:
+  - url: //localhost:8080/api
+components:
+  securitySchemes:
+    BearerAuth:
+      description: 'JWT token. Format: "Bearer {token}"'
+      type: apiKey
+      name: Authorization
+      in: header
+  schemas:
+    model.CreateItemRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+    model.ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+    model.Item:
+      type: object
+      properties:
+        created_at:
+          type: string
+        id:
+          type: string
+        name:
+          type: string
+        updated_at:
+          type: string
+    model.LoginRequest:
+      type: object
+      required:
+        - password
+        - username
+      properties:
+        password:
+          type: string
+        username:
+          type: string
+    model.LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    model.RegisterRequest:
+      type: object
+      required:
+        - password
+        - username
+      properties:
+        password:
+          type: string
+          minLength: 8
+        username:
+          type: string
+    model.UpdateItemRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
