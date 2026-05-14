@@ -52,7 +52,12 @@ REST API in Go backed by MongoDB, with JWT authentication and auto-generated Swa
 
 ## Swagger
 
-The `docs/` package is **generated automatically** by the CI on every push to `main` via `swag init`, then committed back to the repository. Do not edit files under `docs/` by hand.
+The `docs/` package is **generated automatically** by the CI on every push to `main` via `swag init`, converted to **OpenAPI 3.0** with `swagger2openapi`, then committed back to the repository. Do not edit files under `docs/` by hand.
+
+The interactive documentation is published to **GitHub Pages** on every build:
+👉 `https://ronanlambare.github.io/backend-mongo-api/`
+
+> **One-time setup:** go to *Settings → Pages → Source* and select **GitHub Actions**.
 
 To add documentation to a new route, add swag annotations above the handler function:
 
