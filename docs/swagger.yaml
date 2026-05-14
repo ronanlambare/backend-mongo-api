@@ -171,6 +171,21 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /health:
+    get:
+      description: Returns 200 when the API is up and running.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - system
   /items:
     get:
       produces:
