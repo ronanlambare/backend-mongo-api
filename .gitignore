@@ -7,9 +7,6 @@ api
 *.out
 vendor/
 
-# Swagger — generated at build time by swag init
-docs/
-
 # Env
 .env
 
